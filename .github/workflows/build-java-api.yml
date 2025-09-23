@@ -3,10 +3,11 @@ name: Build and Deploy Kaiburr Java API
 
 # Controls when the workflow will run
 on:
+  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
       version:
-        description: 'Image version tag (e.g., latest, 1.0.0)'
+        description: 'Image version tag'
         required: true
         default: 'latest'
 
@@ -16,14 +17,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Check out the source code from the Task 1 repository.
-      # This correctly places the nested project into the 'java-api-code' directory.
+      # Step 1: Check out the source code from the now-correct repository.
       - name: Checkout Java API Source Code
         uses: actions/checkout@v4
         with:
           repository: 'Ashraf0705/kaiburr-task1-java-api'
           ref: 'main'
-          path: 'java-api-code'
 
       # Step 2: Set up JDK 17
       - name: Set up JDK 17
@@ -33,10 +32,8 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # Step 3: Build the application with Maven.
-      # We now point the working directory to the CORRECT nested path.
+      # Step 3: Build with Maven. No special pathing is needed.
       - name: Build with Maven
-        working-directory: ./java-api-code/task-api
         run: mvn -B package --file pom.xml -DskipTests
 
       # Step 4: Log in to Docker Hub
@@ -46,14 +43,9 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Step 5: Build and push the Docker image
-      # We now specify the Dockerfile's location and the build context separately.
+      # Step 5: Build and push Docker image. No special pathing is needed.
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          # The 'context' is where the source code for the build is (pom.xml, src).
-          context: ./java-api-code/task-api
-          # The 'file' points to the location of the Dockerfile itself.
-          file: ./java-api-code/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/kaiburr-task-api:${{ github.event.inputs.version }}
