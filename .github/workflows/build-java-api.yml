@@ -21,11 +21,13 @@ jobs:
     # A sequence of tasks that will be executed as part of the job
     steps:
       # Step 1: Check out the SOURCE CODE from the Task 1 repository
+      # We give it an explicit 'path' so we know exactly where the code is.
       - name: Checkout Java API Source Code
         uses: actions/checkout@v4
         with:
-          repository: 'Ashraf0705/kaiburr-task1-java-api'
-          ref: 'main' # The branch to check out
+          repository: 'Ashraf0705/kaiburr-task1-java-api' 
+          ref: 'main'
+          path: 'java-api-code' # Checkout into a predictable directory name
 
       # Step 2: Set up JDK 17 for the build
       - name: Set up JDK 17
@@ -35,22 +37,24 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # Step 3: Build the application with Maven to create the .jar file
+      # Step 3: Build the application with Maven
+      # We now use the explicit path 'java-api-code' as the working directory.
       - name: Build with Maven
-        working-directory: ./kaiburr-task1-java-api
+        working-directory: ./java-api-code
         run: mvn -B package --file pom.xml -DskipTests
 
-      # Step 4: Log in to Docker Hub using the secrets we configured
+      # Step 4: Log in to Docker Hub
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Step 5: Build the Docker image and push it to Docker Hub
+      # Step 5: Build and push the Docker image
+      # The context for the Docker build is also the explicit path.
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./kaiburr-task1-java-api
-          push: true # We want to push the image
+          context: ./java-api-code
+          push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/kaiburr-task-api:${{ github.event.inputs.version }}
