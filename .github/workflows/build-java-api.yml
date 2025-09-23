@@ -46,11 +46,14 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Step 5: Build and push the Docker image.
-      # The context for the Docker build is also the CORRECT nested path.
+      # Step 5: Build and push the Docker image
+      # We now specify the Dockerfile's location and the build context separately.
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
+          # The 'context' is where the source code for the build is (pom.xml, src).
           context: ./java-api-code/task-api
+          # The 'file' points to the location of the Dockerfile itself.
+          file: ./java-api-code/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/kaiburr-task-api:${{ github.event.inputs.version }}
