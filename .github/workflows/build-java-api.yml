@@ -3,7 +3,6 @@ name: Build and Deploy Kaiburr Java API
 
 # Controls when the workflow will run
 on:
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
       version:
@@ -21,9 +20,14 @@ jobs:
       - name: Checkout Java API Source Code
         uses: actions/checkout@v4
         with:
-          repository: 'Ashraf0705/kaiburr-task1-java-api' # Ensure your username is correct
+          repository: 'Ashraf0705/kaiburr-task1-java-api'
           ref: 'main'
           path: 'java-api-code'
+
+      # --- NEW DIAGNOSTIC STEP ---
+      # This step will show us exactly what files were checked out and where they are.
+      - name: List files in the workspace
+        run: ls -R
 
       # Step 2: Set up JDK 17
       - name: Set up JDK 17
@@ -33,11 +37,10 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # Step 3: Build the application with Maven using a multi-line script
+      # Step 3: Build the application with Maven
       - name: Build with Maven
-        run: |
-          cd ./java-api-code
-          mvn -B package --file pom.xml -DskipTests
+        working-directory: ./java-api-code
+        run: mvn -B package --file pom.xml -DskipTests
 
       # Step 4: Log in to Docker Hub
       - name: Login to Docker Hub
