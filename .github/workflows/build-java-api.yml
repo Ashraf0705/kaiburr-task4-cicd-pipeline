@@ -37,6 +37,7 @@ jobs:
 
       # Step 3: Build the application with Maven to create the .jar file
       - name: Build with Maven
+        working-directory: ./kaiburr-task1-java-api
         run: mvn -B package --file pom.xml -DskipTests
 
       # Step 4: Log in to Docker Hub using the secrets we configured
@@ -50,6 +51,6 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: . # The build context is the checked-out code
+          context: ./kaiburr-task1-java-api
           push: true # We want to push the image
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/kaiburr-task-api:${{ github.event.inputs.version }}
