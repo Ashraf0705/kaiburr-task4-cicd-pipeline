@@ -1,9 +1,7 @@
 # Name of the workflow
 name: Build and Deploy Kaiburr Java API
 
-# Controls when the workflow will run
 on:
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
       version:
@@ -17,12 +15,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Check out the source code from the now-correct repository.
+      # Step 1: Check out the Task 1 repository into a predictable directory.
       - name: Checkout Java API Source Code
         uses: actions/checkout@v4
         with:
           repository: 'Ashraf0705/kaiburr-task1-java-api'
           ref: 'main'
+          path: 'source-code' # Checkout to a folder named 'source-code'
 
       # Step 2: Set up JDK 17
       - name: Set up JDK 17
@@ -32,8 +31,9 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # Step 3: Build with Maven. No special pathing is needed.
+      # Step 3: Build with Maven inside the checked-out directory
       - name: Build with Maven
+        working-directory: ./source-code
         run: mvn -B package --file pom.xml -DskipTests
 
       # Step 4: Log in to Docker Hub
@@ -43,9 +43,12 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Step 5: Build and push Docker image. No special pathing is needed.
+      # Step 5: Build and push Docker image
+      # CRITICAL: We explicitly tell the action that the build context
+      # (where the Dockerfile is) is the 'source-code' directory.
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
+          context: ./source-code
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/kaiburr-task-api:${{ github.event.inputs.version }}
